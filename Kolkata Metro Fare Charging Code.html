@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kolkata Metro Fare Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+            width: 100%;
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .fare-structure {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .fare-structure h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .fare-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .fare-item:last-child {
+            border-bottom: none;
+        }
+        
+        .calculator-section {
+            margin-top: 30px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            transition: border-color 0.3s ease;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .calculate-btn:active {
+            transform: translateY(0);
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 15px;
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .result h3 {
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+        
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .stations-toggle {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .toggle-btn {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .stations-list {
+            display: none;
+            margin-top: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .station-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .station-item:last-child {
+            border-bottom: none;
+        }
+        
+        .station-code {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚇 Kolkata Metro Fare Calculator</h1>
+        
+        <div class="fare-structure">
+            <h3>📋 Fare Structure</h3>
+            <div class="fare-item">
+                <span>0-2 km</span>
+                <span><strong>₹5</strong></span>
+            </div>
+            <div class="fare-item">
+                <span>2-5 km</span>
+                <span><strong>₹10</strong></span>
+            </div>
+            <div class="fare-item">
+                <span>5-10 km</span>
+                <span><strong>₹15</strong></span>
+            </div>
+            <div class="fare-item">
+                <span>10-20 km</span>
+                <span><strong>₹20</strong></span>
+            </div>
+            <div class="fare-item">
+                <span>Above 20 km</span>
+                <span><strong>₹25</strong></span>
+            </div>
+        </div>
+        
+        <div class="calculator-section">
+            <div class="input-group">
+                <label for="fromStation">🚉 From Station:</label>
+                <select id="fromStation">
+                    <option value="">Select departure station</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="toStation">🎯 To Station:</label>
+                <select id="toStation">
+                    <option value="">Select destination station</option>
+                </select>
+            </div>
+            
+            <button class="calculate-btn" onclick="calculateFare()">
+                🧮 Calculate Fare
+            </button>
+        </div>
+        
+        <div id="result" class="result">
+            <h3>🎫 Journey Details</h3>
+            <div class="result-item">
+                <span>From:</span>
+                <span id="resultFrom"></span>
+            </div>
+            <div class="result-item">
+                <span>To:</span>
+                <span id="resultTo"></span>
+            </div>
+            <div class="result-item">
+                <span>Distance:</span>
+                <span id="resultDistance"></span>
+            </div>
+            <div class="result-item">
+                <span>💰 Total Fare:</span>
+                <span id="resultFare"></span>
+            </div>
+        </div>
+        
+        <div class="stations-toggle">
+            <button class="toggle-btn" onclick="toggleStations()">
+                📍 View All Stations
+            </button>
+        </div>
+        
+        <div id="stationsList" class="stations-list">
+            <h3>🗺️ All Metro Stations</h3>
+            <div id="stationsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        class KolkataMetro {
+            constructor() {
+                this.stations = {
+                    "Noapara": { code: "NOA", distance: 0 },
+                    "Dum Dum": { code: "DD", distance: 2.091 },
+                    "Belgachia": { code: "BEL", distance: 4.241 },
+                    "Shyambazar": { code: "SHY", distance: 5.861 },
+                    "Shovabazar Sutanuti": { code: "SS", distance: 6.789 },
+                    "Girish Park": { code: "GP", distance: 7.79 },
+                    "MG Road": { code: "MGR", distance: 8.556 },
+                    "Central": { code: "CEN", distance: 9.593 },
+                    "Chandni Chawk": { code: "CC", distance: 10.19 },
+                    "Esplanade": { code: "ESP", distance: 10.895 },
+                    "Park Street": { code: "PS", distance: 11.7 },
+                    "Maidan": { code: "MAI", distance: 12.427 },
+                    "Rabindra Sadan": { code: "RS", distance: 13.443 },
+                    "Netaji Bhavan": { code: "NB", distance: 14.291 },
+                    "Jatin Das Park": { code: "JAT", distance: 15.324 },
+                    "Kalighat": { code: "KAL", distance: 15.945 },
+                    "Rabindra Sarovar": { code: "RSR", distance: 17.188 },
+                    "Mahanayak Uttam Kumar": { code: "MAH", distance: 18.532 },
+                    "Netaji": { code: "NET", distance: 20.346 },
+                    "Masterda Surya Sen": { code: "MAS", distance: 22.068 },
+                    "Gitanjali": { code: "GIT", distance: 23.121 },
+                    "Kavi Nazrul": { code: "KN", distance: 24.366 },
+                    "Shahid Khudiram": { code: "SK", distance: 25.641 },
+                    "Kavi Subhas": { code: "KS", distance: 27.217 }
+                };
+                
+                this.populateStationDropdowns();
+                this.populateStationsList();
+            }
+
+            calculateFare(distance) {
+                if (distance <= 2) return 5;
+                else if (distance <= 5) return 10;
+                else if (distance <= 10) return 15;
+                else if (distance <= 15) return 20;
+                else return 25;
+            }
+
+            getJourneyDetails(fromStation, toStation) {
+                if (!this.stations[fromStation]) {
+                    return { error: `'${fromStation}' is not a valid station` };
+                }
+
+                if (!this.stations[toStation]) {
+                    return { error: `'${toStation}' is not a valid station` };
+                }
+
+                const fromDistance = this.stations[fromStation].distance;
+                const toDistance = this.stations[toStation].distance;
+                const journeyDistance = Math.abs(toDistance - fromDistance);
+                const fare = this.calculateFare(journeyDistance);
+
+                return {
+                    from: fromStation,
+                    to: toStation,
+                    distance: Math.round(journeyDistance * 100) / 100,
+                    fare: fare
+                };
+            }
+
+            populateStationDropdowns() {
+                const fromSelect = document.getElementById('fromStation');
+                const toSelect = document.getElementById('toStation');
+
+                Object.keys(this.stations).forEach(station => {
+                    const option1 = document.createElement('option');
+                    option1.value = station;
+                    option1.textContent = `${station} (${this.stations[station].code})`;
+                    fromSelect.appendChild(option1);
+
+                    const option2 = document.createElement('option');
+                    option2.value = station;
+                    option2.textContent = `${station} (${this.stations[station].code})`;
+                    toSelect.appendChild(option2);
+                });
+            }
+
+            populateStationsList() {
+                const container = document.getElementById('stationsContainer');
+                let index = 1;
+                
+                Object.entries(this.stations).forEach(([station, info]) => {
+                    const stationDiv = document.createElement('div');
+                    stationDiv.className = 'station-item';
+                    stationDiv.innerHTML = `
+                        <span>${index}. ${station}</span>
+                        <div>
+                            <span class="station-code">${info.code}</span>
+                            <span style="margin-left: 10px;">${info.distance} km</span>
+                        </div>
+                    `;
+                    container.appendChild(stationDiv);
+                    index++;
+                });
+            }
+        }
+
+        const metro = new KolkataMetro();
+
+        function calculateFare() {
+            const fromStation = document.getElementById('fromStation').value;
+            const toStation = document.getElementById('toStation').value;
+            const resultDiv = document.getElementById('result');
+
+            if (!fromStation || !toStation) {
+                alert('Please select both departure and destination stations!');
+                return;
+            }
+
+            if (fromStation === toStation) {
+                alert('Departure and destination stations cannot be the same!');
+                return;
+            }
+
+            const result = metro.getJourneyDetails(fromStation, toStation);
+
+            if (result.error) {
+                alert(result.error);
+                return;
+            }
+
+            document.getElementById('resultFrom').textContent = result.from;
+            document.getElementById('resultTo').textContent = result.to;
+            document.getElementById('resultDistance').textContent = `${result.distance} km`;
+            document.getElementById('resultFare').textContent = `₹${result.fare}`;
+
+            resultDiv.style.display = 'block';
+        }
+
+        function toggleStations() {
+            const stationsList = document.getElementById('stationsList');
+            const toggleBtn = document.querySelector('.toggle-btn');
+            
+            if (stationsList.style.display === 'none' || stationsList.style.display === '') {
+                stationsList.style.display = 'block';
+                toggleBtn.textContent = '📍 Hide Stations';
+            } else {
+                stationsList.style.display = 'none';
+                toggleBtn.textContent = '📍 View All Stations';
+            }
+        }
+    </script>
+</body>
+</html>
